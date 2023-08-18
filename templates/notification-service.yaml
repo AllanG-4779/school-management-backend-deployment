@@ -46,10 +46,10 @@ spec:
             - name: MOVE_SMS_API_KEY
               valueFrom:
                 secretKeyRef:
-                    name: school-management_secrets
-                    value: MOVE_SMS_API_KEY
+                    name: school-management-secrets
+                    key: MOVE_SMS_API_KEY
             - name: PORT
-              value: {{ .Values.notificationService.servicePort }}
+              value: "{{ .Values.notificationService.servicePort }}"
       resources:
         limits:
             memory: "128Mi"

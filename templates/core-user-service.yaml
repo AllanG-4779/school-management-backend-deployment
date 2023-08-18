@@ -21,6 +21,7 @@ spec:
           image: {{ .Values.userService.imageSource }}:{{ .Values.userService.imageTag }}
           ports:
             - containerPort: {{ .Values.userService.port }}
+              name: {{ .Values.userService.serviceName }}
           env:
           - name: DB_PASSWORD
             valueFrom:

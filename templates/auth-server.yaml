@@ -20,7 +20,7 @@ spec:
         - name: {{ .Values.authServer.serviceName }}
           image: {{ .Values.authServer.imageSource }}:{{ .Values.authServer.imageTag }}
           ports:
-            - containerPort: {{ .Values.authServer.servicePort }}
+            - containerPort: {{ .Values.authServer.servicePort }}              
           env:
           - name: PORT
             value: "{{ .Values.authServer.servicePort }}"
@@ -68,6 +68,6 @@ spec:
   type: ClusterIP
   ports:
     - port: {{ .Values.authServer.servicePort }}
-      targetPort: {{ .Values.authServer.servicePort }}     
+      targetPort: {{ .Values.authServer.servicePort }}
   selector:
     app: {{ .Values.authServer.serviceName }}

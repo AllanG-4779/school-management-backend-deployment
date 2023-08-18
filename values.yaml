@@ -19,14 +19,14 @@ kafkaService:
   port: 9092
 
 userService:
-  serviceName: user-management-service
+  serviceName: user-service
   imageSource: dockerallang/school-management-user-service
   imageTag: latest
   port: 5700
   database: school_management_user_service
 
 notificationService:
-  serviceName: auth-server
+  serviceName: notification-svc
   servicePort: 5699
   imageSource: dockerallang/school-management-notification
   imageTag: latest
