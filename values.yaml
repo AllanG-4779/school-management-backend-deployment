@@ -6,10 +6,9 @@ authServer:
   imageSource: dockerallang/school-management-auth-server
   imageTag: latest
   database: school_management_auth
-  
-  
-dbServer:   
-  host: mysql-service 
+
+dbServer:
+  host: mysql-service
   port: 3306
 
 keyStore:
@@ -19,11 +18,11 @@ kafkaService:
   serviceName: kafka-service
   port: 9092
 
-userService: 
+userService:
   serviceName: user-management-service
   imageSource: dockerallang/school-management-user-service
   imageTag: latest
-  port: 5700  
+  port: 5700
   database: school_management_user_service
 
 notificationService:
@@ -32,9 +31,3 @@ notificationService:
   imageSource: dockerallang/school-management-notification
   imageTag: latest
   database: school_management_notification
-  
- 
-  
-
-  
-
