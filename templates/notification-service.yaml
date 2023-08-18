@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  {{ .Values.notificationService.serviceName }}
+  labels:
+    app: {{ .Values.notificationService.serviceName }}  
+  helm.sh/release-name: {{ .Release.Name }}
+  helm.sh/release-namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.notificationService.serviceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.notificationService.serviceName }}
+    spec:
+      containers:
+        - name: {{ .Values.notificationService.serviceName }}
+          image: {{ .Values.notificationService.imageSource }}:{{ .Values.notificationService.imageTag }}
+          ports:
+            - containerPort: {{ .Values.notificationService.servicePort }}
+          env:          
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                    name: school-management-secrets
+                    key: DB_USER
+            - name: DB_NAME
+              value: {{ .Values.notificationService.database }}
+            - name: DB_PASSWORD
+              valueFrom:
+                  secretKeyRef:
+                    name: school-management-secrets
+                    key: DB_PASSWORD
+            - name: DB_HOST
+              value: {{ .Values.dbServer.host }}:{{ .Values.dbServer.port }}
+            - name: KEYSTORE_PASSWORD
+              valueFrom:
+                  secretKeyRef:
+                    name: school-management-secrets
+                    key:  KEYSTORE_PASSWORD 
+            - name: KAFKA_BROKER
+              value: {{ .Values.kafkaService.serviceName }}:{{ .Values.kafkaService.port }}
+            - name: MOVE_SMS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                    name: school-management_secrets
+                    value: MOVE_SMS_API_KEY
+            - name: PORT
+              value: {{ .Values.authServer.servicePort }}
+      resources:
+        limits:
+        memory: "128Mi"
+        cpu: "500m"
+      requests:
+        memory: "64Mi"
+        cpu: "250m"
+    
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.notificationService.serviceName }}
+  labels:
+    app: {{ .Values.notificationService.serviceName }}
+  annotations:
+    dev.okteto.com/auto-ingress: "true"
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.notificationService.servicePort }}
+      targetPort: {{ .Values.notificationService.servicePort }}     
+  selector:
+    app: {{ .Values.notificationService.serviceName }}

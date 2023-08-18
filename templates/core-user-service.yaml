@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  {{ .Values.userService.serviceName }}
+  labels:
+    app: {{ .Values.userService.serviceName }}  
+  helm.sh/release-name: {{ .Release.Name }}
+  helm.sh/release-namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.userService.serviceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.userService.serviceName }}
+    spec:
+      containers:
+        - name: {{ .Values.userService.serviceName }}
+          image: {{ .Values.userService.imageSource }}:{{ .Values.userService.imageTag }}
+          ports:
+            - containerPort: {{ .Values.userService.port }}
+          env:
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: school-management-secrets
+                key: DB_PASSWORD  
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: school-management-secrets
+                key: DB_USER        
+          - name: DB_NAME
+            value: {{ .Values.userService.database }}
+          - name: DB_HOST
+            value: {{ .Values.dbServer.host }}:{{ .Values.dbServer.port }}
+          - name: KEYSTORE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: school-management-secrets
+                key: KEYSTORE_PASSWORD 
+          - name: KAFKA_BROKER
+            value: {{ .Values.kafkaService.serviceName }}:{{ .Values.kafkaService.port }}  
+          - name: PORT
+            value: {{ .Values.userService.port }}    
+
+      resources:
+        limits:
+          memory: "128Mi"
+          cpu: "500m"
+        requests:
+          memory: "64Mi"
+          cpu: "250m"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.userService.serviceName }}
+  labels:
+    app: {{ .Values.userService.serviceName }}
+  annotations:
+    dev.okteto.com/auto-ingress: "true"
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.userService.port }}
+      targetPort: {{ .Values.userService.port }}     
+  selector:
+    app: {{ .Values.userService.serviceName }}

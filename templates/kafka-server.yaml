@@ -1,0 +1,147 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zookeeper
+  helm.sh/release-name: {{ .Release.Name }}
+  helm.sh/release-namespace: default
+  labels:
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zookeeper
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+    spec:
+      containers:
+        - name: zookeeper
+          image: confluentinc/cp-zookeeper:latest
+          ports:
+            - containerPort: 2181
+          env:
+            - name: ZOOKEEPER_CLIENT_PORT
+              value: "2181"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper-service
+  helm.sh/release-name: {{ .Release.Name }}
+  helm.sh/release-namespace: default
+  labels:
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    app: zookeeper
+  ports:
+    - protocol: TCP
+      port: 2181
+      targetPort: 2181
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka
+  helm.sh/release-name: {{ .Release.Name }}
+  helm.sh/release-namespace: default
+  labels:
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - name: kafka
+          image: confluentinc/cp-kafka:latest
+          ports:
+            - containerPort: {{ .Values.kafkaService.port }}
+          env:
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: "zookeeper-service:2181"
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: "PLAINTEXT://kafka-service:9092"
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.kafkaService.serviceName }}
+  helm.sh/release-name: {{ .Release.Name }}
+  helm.sh/release-namespace: default
+  labels:
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    app: kafka
+  ports:
+    - protocol: TCP
+      port: {{ .Values.kafkaService.port }}
+      targetPort: {{ .Values.kafkaService.port }}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-ui
+  helm.sh/release-name: {{ .Release.Name }}
+  helm.sh/release-namespace: default
+  labels:
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-ui
+  template:
+    metadata:
+      labels:
+        app: kafka-ui
+    spec:
+      containers:
+        - name: kafka-ui
+          image: provectuslabs/kafka-ui:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS
+              value: "kafka-service:9092"
+            - name: KAFKA_CLUSTERS_0_ZOOKEEPER
+              value: "zookeeper-service:2181"
+            - name: KAFKA_CLUSTERS_0_JMXPORT
+              value: "9999"
+            - name: KAFKA_CLUSTERS_0_JMXUSER
+              value: "admin"
+            - name: KAFKA_CLUSTERS_0_JMXPASSWORD
+              value: "admin-secret"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-ui-service
+  helm.sh/release-name: {{ .Release.Name }}
+  helm.sh/release-namespace: default
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    dev.okteto.com/auto-ingress: "true"
+spec:
+  selector:
+    app: kafka-ui
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
